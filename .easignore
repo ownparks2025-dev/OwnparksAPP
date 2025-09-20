@@ -1,0 +1,17 @@
+# Ignore Windows system folders and problematic directories
+C:\Users\win10\AppData\Local\ElevatedDiagnostics
+C:\Users\win10\AppData\Local\*
+AppData/
+node_modules/.cache
+*.log
+.expo/
+.git/
+build/
+dist/
+*.tmp
+*.temp
+# Ignore all system and hidden directories
+.*
+!.expo
+!.gitignore
+!.easignore

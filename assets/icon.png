@@ -1,0 +1,35 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1024" height="1024" fill="#ffffff"/>
+  
+  <!-- Building with 3D perspective -->
+  <g transform="translate(512, 400)">
+    <!-- Main building face -->
+    <g transform="scale(3.5)">
+      <!-- Red stripe 1 -->
+      <path d="M -60 -40 L 60 -50 L 60 -25 L -60 -15 Z" fill="#CC0000"/>
+      <!-- White stripe 1 -->
+      <path d="M -60 -15 L 60 -25 L 60 0 L -60 10 Z" fill="#FFFFFF" stroke="#CC0000" stroke-width="0.5"/>
+      <!-- Red stripe 2 -->
+      <path d="M -60 10 L 60 0 L 60 25 L -60 35 Z" fill="#CC0000"/>
+      <!-- White stripe 2 -->
+      <path d="M -60 35 L 60 25 L 60 50 L -60 60 Z" fill="#FFFFFF" stroke="#CC0000" stroke-width="0.5"/>
+      <!-- Red stripe 3 -->
+      <path d="M -60 60 L 60 50 L 60 75 L -60 85 Z" fill="#CC0000"/>
+      
+      <!-- Building outline -->
+      <path d="M -60 -40 L 60 -50 L 60 75 L -60 85 Z" fill="none" stroke="#CC0000" stroke-width="2"/>
+      
+      <!-- 3D side face -->
+      <path d="M 60 -50 L 75 -40 L 75 85 L 60 75 Z" fill="#AA0000" stroke="#CC0000" stroke-width="1"/>
+      
+      <!-- 3D top face -->
+      <path d="M -60 -40 L -45 -50 L 75 -40 L 60 -50 Z" fill="#DD0000" stroke="#CC0000" stroke-width="1"/>
+    </g>
+  </g>
+  
+  <!-- OWN PARKS text -->
+  <text x="512" y="750" font-family="Arial, sans-serif" font-size="80" font-weight="bold" text-anchor="middle" fill="#1a237e" letter-spacing="8px">
+    OWN PARKS
+  </text>
+</svg>

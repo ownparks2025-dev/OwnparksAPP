@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "939990037154",
+    "project_id": "newapp2-7bf2e",
+    "storage_bucket": "newapp2-7bf2e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:939990037154:android:59ae0381a79a9f8abcddfb",
+        "android_client_info": {
+          "package_name": "com.ownparks.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "939990037154-l2ankrhfon593e3lcsj43e8t5deoj9c5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ownparks.app",
+            "certificate_hash": "a8a084e92dc85bb154888d2630c0e4b6b0a78c6c"
+          }
+        },
+        {
+          "client_id": "939990037154-mkib7eefp0fgg3erqj6b9i5dv4jb2bri.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCaMdl4Q-aIjWtP9nXbrAGz80uAynnPcE4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "939990037154-mkib7eefp0fgg3erqj6b9i5dv4jb2bri.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
