@@ -95,7 +95,9 @@ const PortfolioScreen: React.FC<NavigationProps> = ({ navigation }) => {
         monthlyReturn,
         investorName: userProfile?.name || 'User',
         investorEmail: userProfile?.email || currentUser.email || '',
-        agreementDate: investment.createdAt.toDate ? investment.createdAt.toDate() : new Date(investment.createdAt),
+        agreementDate: investment.createdAt && typeof investment.createdAt === 'object' && 'toDate' in investment.createdAt 
+          ? (investment.createdAt as any).toDate() 
+          : new Date(investment.createdAt),
       });
     } catch (error) {
       console.error('Error downloading agreement:', error);

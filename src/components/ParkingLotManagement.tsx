@@ -51,6 +51,7 @@ const ParkingLotManagement: React.FC = () => {
     availability: true,
     details: '',
     images: [],
+    totalLots: '',
   });
 
   const loadParkingLots = async () => {

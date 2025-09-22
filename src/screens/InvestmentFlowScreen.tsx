@@ -9,7 +9,9 @@ import {
   ActivityIndicator,
   Dimensions,
 } from 'react-native';
-import { NavigationProps, ParkingLot } from '../types';
+import { ParkingLot } from '../types';
+import { StackScreenProps } from '@react-navigation/stack';
+import { RootStackParamList } from '../navigation/AppNavigator';
 import { createInvestment, getParkingLotById } from '../services/firebase';
 import { validateEmail } from '../utils/validation';
 // Removed PaymentGateway import - using offline payment flow
@@ -18,15 +20,7 @@ import { generateLeaseAgreementPDF, formatCurrency, formatPercentage } from '../
 
 const { width } = Dimensions.get('window');
 
-interface InvestmentFlowScreenProps extends NavigationProps {
-  route: {
-    params: {
-      parkingLot: ParkingLot;
-      investmentAmount: number;
-      selectedLots: number;
-    };
-  };
-}
+type InvestmentFlowScreenProps = StackScreenProps<RootStackParamList, 'InvestmentFlow'>;
 
 const InvestmentFlowScreen: React.FC<InvestmentFlowScreenProps> = ({ navigation, route }) => {
   const { parkingLot, investmentAmount, selectedLots } = route.params;

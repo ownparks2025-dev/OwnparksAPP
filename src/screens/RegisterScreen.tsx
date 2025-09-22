@@ -83,15 +83,8 @@ const RegisterScreen: React.FC<NavigationProps> = ({ navigation }) => {
         addressProof: formData.addressProof,
       });
 
-      // Sync any pending documents that were uploaded before authentication
-      try {
-        const { syncPendingDocuments } = await import('../services/cloudinaryStorage');
-        await syncPendingDocuments(userCredential.uid);
-        console.log('Pending documents synced successfully');
-      } catch (syncError) {
-        console.error('Failed to sync pending documents:', syncError);
-        // Don't fail the registration if document sync fails
-      }
+      // Firebase sync removed - KYC documents now use only local storage
+      console.log('Registration completed - KYC documents stored locally');
 
       Alert.alert(
         'Registration Successful!',

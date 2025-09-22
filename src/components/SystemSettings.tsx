@@ -11,7 +11,7 @@ import {
   Switch,
   Modal,
 } from 'react-native';
-import { getSystemStats } from '../services/admin';
+import { getSystemStats, getAdminUsers } from '../services/admin';
 import { exportAllData } from '../services/exportService';
 
 interface SystemSettingsProps {}
@@ -172,7 +172,8 @@ const SystemSettings: React.FC<SystemSettingsProps> = () => {
     setAdminCreationLoading(true);
     try {
       // Check if admin already exists
-      const adminExists = await checkAdminUserExists();
+      const adminUsers = await getAdminUsers();
+      const adminExists = adminUsers.length > 0;
       if (adminExists) {
         Alert.alert(
           'Admin Exists',
@@ -182,11 +183,10 @@ const SystemSettings: React.FC<SystemSettingsProps> = () => {
         return;
       }
 
-      // Create admin user
-      await createAdminUser();
+      // Create admin user functionality not implemented
       Alert.alert(
-        'Admin Created',
-        'Admin user created successfully!\n\nEmail: admin@ownparks.com\nPassword: admin123456\n\nPlease change the password after first login.',
+        'Feature Not Available',
+        'Admin user creation feature is not yet implemented. Please contact system administrator.',
         [{ text: 'OK' }]
       );
     } catch (error) {

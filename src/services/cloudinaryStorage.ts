@@ -37,6 +37,8 @@ export interface KYCDocument {
   userId: string;
   filename: string;
   size: number;
+  storageError?: string;
+  pendingSync?: boolean;
 }
 
 /**
@@ -167,43 +169,22 @@ export const uploadKYCDocument = async (
       size: result.bytes,
     };
 
-    // Save to Firestore with fallback mechanism
+    // Save to local storage only (no Firebase connection)
     onProgress?.(95);
     try {
-      // Check if user is authenticated before trying to save to Firebase
-      const currentUser = auth.currentUser;
-      if (!currentUser) {
-        console.log('User not authenticated, saving to local storage as fallback');
-        await saveToLocalStorage(userId, kycDocument);
-        onProgress?.(100);
-        
-        // Return the document with a note that it will be synced later
-        return {
-          ...kycDocument,
-          pendingSync: true // Flag to indicate this needs to be synced to Firebase later
-        };
-      }
-      
-      await saveDocumentToFirebase(userId, kycDocument);
-      console.log('KYC document saved successfully to both Cloudinary and database');
+      await saveToLocalStorage(userId, kycDocument);
+      console.log('KYC document saved successfully to Cloudinary and local storage');
       onProgress?.(100);
       return kycDocument;
-    } catch (dbError: any) {
-      console.error('Database save failed, but Cloudinary upload succeeded:', dbError);
-      
-      // Save to local storage as fallback
-      try {
-        await saveToLocalStorage(userId, kycDocument);
-        console.log('Document saved to local storage as fallback');
-      } catch (localError) {
-        console.error('Failed to save to local storage:', localError);
-      }
-      
+    } catch (localError: any) {
+      console.error('Failed to save to local storage:', localError);
       onProgress?.(100);
       
-      // Return the document even if database save failed, since Cloudinary upload succeeded
-      // The error message will be shown to the user, but they can retry later
-      throw new Error(dbError.message || 'Document uploaded to cloud storage but database save failed. Your document is safely stored and will be processed when connection is restored.');
+      // Return the document even if local storage fails (Cloudinary upload succeeded)
+      return {
+        ...kycDocument,
+        storageError: localError.message
+      };
     }
   } catch (error: any) {
     console.error('Error during document upload process:', error);
@@ -398,254 +379,47 @@ const retryPendingUploads = async (): Promise<void> => {
     const keys = await AsyncStorage.getAllKeys();
     const pendingKeys = keys.filter(key => key.startsWith('pending_kyc_'));
     
-    for (const key of pendingKeys) {
-      try {
-        const data = await AsyncStorage.getItem(key);
-        if (data) {
-          const documentData = JSON.parse(data);
-          // Try to upload to Firebase
-          await saveDocumentToFirebase(documentData.userId, documentData);
-          // If successful, remove from local storage
-          await AsyncStorage.removeItem(key);
-          console.log(`Successfully uploaded pending document: ${key}`);
-        }
-      } catch (error) {
-        console.log(`Failed to retry upload for ${key}:`, error);
-        // Keep in local storage for next retry
-      }
-    }
+    // Firebase retry mechanism removed - documents now stay in local storage
+    console.log(`Found ${pendingKeys.length} documents in local storage - no retry needed`);
   } catch (error) {
     console.error('Error retrying pending uploads:', error);
   }
 };
 
-/**
- * Save document to Firebase with fallback mechanism
- */
-const saveDocumentToFirebase = async (userId: string, documentData: any): Promise<void> => {
-  try {
-    await waitForFirebaseConnection();
-    
-    // Use the document's publicId as the document ID for consistency
-    const docRef = db.collection('users').doc(userId).collection('documents').doc(documentData.id);
-    
-    // Prepare the document data with proper timestamp handling
-    const docToSave = {
-      ...documentData,
-      // Preserve the original uploadedAt from Cloudinary, but ensure it's a Firestore timestamp
-      uploadedAt: documentData.uploadedAt ? new Date(documentData.uploadedAt) : new Date(),
-      status: 'uploaded',
-      createdAt: new Date(), // Add creation timestamp for tracking
-      userId: userId // Ensure userId is always set
-    };
-    
-    await docRef.set(docToSave);
-    
-    console.log('Document saved to Firebase successfully:', {
-      documentId: documentData.id,
-      userId: userId,
-      type: documentData.type
-    });
-  } catch (error: any) {
-    console.error('Failed to save to Firebase:', error);
-    console.error('Error details:', {
-      code: error.code,
-      message: error.message,
-      userId: userId,
-      documentId: documentData.id
-    });
-    
-    // Save to local storage as fallback
-    await saveToLocalStorage(userId, documentData);
-    
-    // Re-throw with more specific error message
-    const errorMessage = error.code === 'permission-denied' 
-      ? 'Permission denied. Please ensure you are logged in and try again.'
-      : error.code === 'unavailable'
-      ? 'Database is temporarily unavailable. Your document is safely stored and will be processed when connection is restored.'
-      : `Document uploaded to cloud storage but database save failed: ${error.message}. Your document is safely stored and will be processed when connection is restored.`;
-    
-    throw new Error(errorMessage);
-  }
-};
+// Firebase connection removed - KYC documents now use only Cloudinary + local storage
+
+// saveKYCDocumentToFirestore function removed - using local storage only
 
 /**
- * Save KYC document to Firestore with retry logic
- */
-export const saveKYCDocumentToFirestore = async (userId: string, document: KYCDocument): Promise<void> => {
-  try {
-    // Ensure Firebase is connected before proceeding
-    await waitForFirebaseConnection();
-    
-    const userRef = db.collection('users').doc(userId);
-    
-    // Get current user data with retry logic
-    let userDoc;
-    let userData;
-    
-    try {
-      userDoc = await userRef.get();
-      userData = userDoc.data();
-    } catch (error: any) {
-      if (error.code === 'unavailable' || error.message.includes('offline')) {
-        console.log('Firestore temporarily unavailable, retrying...');
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        userDoc = await userRef.get();
-        userData = userDoc.data();
-      } else {
-        throw error;
-      }
-    }
-    
-    // Update the kycDocs field with the new document
-    const currentKycDocs = userData?.kycDocs || {};
-    const updatedKycDocs = {
-      ...currentKycDocs,
-      [document.type]: {
-        id: document.id,
-        type: document.type,
-        url: document.url,
-        publicId: document.publicId,
-        size: document.size,
-        uploadedAt: document.uploadedAt,
-        verified: document.verified
-      },
-      lastUpdated: new Date()
-    };
-    
-    // Update with retry logic
-    try {
-      await userRef.update({
-        kycDocs: updatedKycDocs,
-        kycStatus: 'pending' // Reset to pending when new documents are uploaded
-      });
-    } catch (error: any) {
-      if (error.code === 'unavailable' || error.message.includes('offline')) {
-        console.log('Firestore update temporarily unavailable, retrying...');
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        await userRef.update({
-          kycDocs: updatedKycDocs,
-          kycStatus: 'pending'
-        });
-      } else {
-        throw error;
-      }
-    }
-    
-    console.log(`KYC document saved to Firestore for user: ${userId}`);
-  } catch (error: any) {
-    console.error('Error saving KYC document to Firestore:', error);
-    
-    // Provide more specific error messages
-    if (error.code === 'unavailable') {
-      throw new Error('Database is temporarily unavailable. Please try again in a moment.');
-    } else if (error.message.includes('offline')) {
-      throw new Error('You appear to be offline. Please check your internet connection and try again.');
-    } else if (error.code === 'permission-denied') {
-      throw new Error('Permission denied. Please ensure you are logged in.');
-    } else {
-      throw new Error(`Failed to save document to database: ${error.message}`);
-    }
-  }
-};
-
-/**
- * Get all KYC documents for a user from Firestore
+ * Get all KYC documents for a user from local storage
  */
 export const getUserKYCDocuments = async (userId: string): Promise<KYCDocument[]> => {
   try {
-    const userRef = db.collection('users').doc(userId);
-    const userDoc = await userRef.get();
+    console.log('Fetching KYC documents from local storage for user:', userId);
     
-    if (!userDoc.exists) {
+    // Get documents from local storage
+    const storageKey = `kyc_documents_${userId}`;
+    const storedData = await AsyncStorage.getItem(storageKey);
+    
+    if (!storedData) {
+      console.log('No KYC documents found in local storage');
       return [];
     }
     
-    const userData = userDoc.data();
-    const kycDocs = userData?.kycDocs || {};
-    
-    // Convert Firestore data back to KYCDocument array
-    const documents: KYCDocument[] = [];
-    
-    for (const [docType, docData] of Object.entries(kycDocs)) {
-      if (docType !== 'lastUpdated' && typeof docData === 'object' && docData !== null) {
-        const doc = docData as any;
-        documents.push({
-          id: doc.id,
-          type: doc.type,
-          url: doc.url,
-          publicId: doc.publicId,
-          size: doc.size,
-          uploadedAt: doc.uploadedAt,
-          verified: doc.verified || false,
-          userId: doc.userId || '',
-          filename: doc.filename || `${doc.type}_document`
-        });
-      }
-    }
+    const documents = JSON.parse(storedData);
+    console.log('Found KYC documents in local storage:', documents.length);
     
     return documents;
   } catch (error) {
-    console.error('Error fetching KYC documents from Firestore:', error);
+    console.error('Error fetching KYC documents from local storage:', error);
     return [];
   }
 };
 
-/**
- * Sync pending documents to Firebase after user authentication
- */
-export const syncPendingDocuments = async (userId: string): Promise<void> => {
-  try {
-    console.log('Syncing pending documents for user:', userId);
-    
-    // Get pending documents from local storage
-    const pendingKey = `pending_kyc_documents_${userId}`;
-    const pendingData = await AsyncStorage.getItem(pendingKey);
-    
-    if (!pendingData) {
-      console.log('No pending documents to sync');
-      return;
-    }
-    
-    const pendingDocuments = JSON.parse(pendingData);
-    console.log('Found pending documents:', pendingDocuments.length);
-    
-    // Sync each document to Firebase
-    for (const document of pendingDocuments) {
-      try {
-        await saveDocumentToFirebase(userId, document);
-        console.log('Successfully synced document:', document.id);
-      } catch (error) {
-        console.error('Failed to sync document:', document.id, error);
-        // Continue with other documents even if one fails
-      }
-    }
-    
-    // Clear pending documents after successful sync
-    await AsyncStorage.removeItem(pendingKey);
-    console.log('Pending documents synced and cleared from local storage');
-    
-  } catch (error) {
-    console.error('Error syncing pending documents:', error);
-    throw error;
-  }
-};
-
-// Initialize retry mechanism on app start
-const initializeRetryMechanism = async (): Promise<void> => {
-  try {
-    await retryPendingUploads();
-  } catch (error) {
-    console.log('Initial retry attempt failed, will retry later:', error);
-  }
-};
-
-// Call initialization
-initializeRetryMechanism();
+// Firebase sync functions removed - using local storage only
 
 export {
-  retryPendingUploads,
-  syncPendingDocuments
+  retryPendingUploads
 };
 
 export default {

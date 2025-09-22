@@ -9,19 +9,15 @@ import {
   Alert,
   Dimensions,
 } from 'react-native';
-import { NavigationProps, ParkingLot } from '../types';
+import { ParkingLot } from '../types';
+import { StackScreenProps } from '@react-navigation/stack';
+import { RootStackParamList } from '../navigation/AppNavigator';
 import { getParkingLotById } from '../services/firebase';
 import { formatCurrency, formatPercentage } from '../utils/validation';
 
 const { width } = Dimensions.get('window');
 
-interface LotDetailsScreenProps extends NavigationProps {
-  route: {
-    params: {
-      lotId: string;
-    };
-  };
-}
+type LotDetailsScreenProps = StackScreenProps<RootStackParamList, 'LotDetails'>;
 
 const LotDetailsScreen: React.FC<LotDetailsScreenProps> = ({ navigation, route }) => {
   const { lotId } = route.params;

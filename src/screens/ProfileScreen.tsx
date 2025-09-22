@@ -160,10 +160,13 @@ const ProfileScreen: React.FC<NavigationProps> = ({ navigation }) => {
   };
 
   const handleSaveEdit = () => {
-    setUserProfile(prev => ({
-      ...prev,
-      [editingField]: editValue,
-    }));
+    setUserProfile(prev => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        [editingField]: editValue,
+      };
+    });
     setEditModalVisible(false);
     Alert.alert('Success', 'Profile updated successfully!');
   };
@@ -322,8 +325,12 @@ const ProfileScreen: React.FC<NavigationProps> = ({ navigation }) => {
           
           <View style={styles.documentsCard}>
             <TouchableOpacity
-              style={styles.documentRow}
-              onPress={() => handleDocumentUpload('PAN Card')}
+              style={[
+                styles.documentRow,
+                userProfile.kycStatus === 'verified' && styles.documentRowDisabled
+              ]}
+              onPress={userProfile.kycStatus === 'verified' ? undefined : () => handleDocumentUpload('PAN Card')}
+              disabled={userProfile.kycStatus === 'verified'}
             >
               <View style={styles.documentLeft}>
                 <Text style={styles.documentIcon}>🆔</Text>
@@ -340,12 +347,19 @@ const ProfileScreen: React.FC<NavigationProps> = ({ navigation }) => {
                 <Text style={styles.documentStatusText}>
                   {userProfile.documents.pan.verified ? 'Verified' : 'Pending'}
                 </Text>
+                {userProfile.kycStatus === 'verified' && (
+                  <Text style={styles.viewOnlyText}>View Only</Text>
+                )}
               </View>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.documentRow}
-              onPress={() => handleDocumentUpload('Aadhar Card')}
+              style={[
+                styles.documentRow,
+                userProfile.kycStatus === 'verified' && styles.documentRowDisabled
+              ]}
+              onPress={userProfile.kycStatus === 'verified' ? undefined : () => handleDocumentUpload('Aadhar Card')}
+              disabled={userProfile.kycStatus === 'verified'}
             >
               <View style={styles.documentLeft}>
                 <Text style={styles.documentIcon}>🔢</Text>
@@ -362,12 +376,19 @@ const ProfileScreen: React.FC<NavigationProps> = ({ navigation }) => {
                 <Text style={styles.documentStatusText}>
                   {userProfile.documents.aadhar.verified ? 'Verified' : 'Pending'}
                 </Text>
+                {userProfile.kycStatus === 'verified' && (
+                  <Text style={styles.viewOnlyText}>View Only</Text>
+                )}
               </View>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.documentRow}
-              onPress={() => handleDocumentUpload('Selfie')}
+              style={[
+                styles.documentRow,
+                userProfile.kycStatus === 'verified' && styles.documentRowDisabled
+              ]}
+              onPress={userProfile.kycStatus === 'verified' ? undefined : () => handleDocumentUpload('Selfie')}
+              disabled={userProfile.kycStatus === 'verified'}
             >
               <View style={styles.documentLeft}>
                 <Text style={styles.documentIcon}>🤳</Text>
@@ -384,6 +405,9 @@ const ProfileScreen: React.FC<NavigationProps> = ({ navigation }) => {
                 <Text style={styles.documentStatusText}>
                   {userProfile.documents.selfie.verified ? 'Verified' : 'Rejected'}
                 </Text>
+                {userProfile.kycStatus === 'verified' && (
+                  <Text style={styles.viewOnlyText}>View Only</Text>
+                )}
               </View>
             </TouchableOpacity>
           </View>
@@ -686,6 +710,15 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     fontWeight: '500',
+  },
+  documentRowDisabled: {
+    opacity: 0.6,
+  },
+  viewOnlyText: {
+    fontSize: 10,
+    color: '#8E8E93',
+    fontStyle: 'italic',
+    marginTop: 2,
   },
   accountCard: {
     backgroundColor: 'white',

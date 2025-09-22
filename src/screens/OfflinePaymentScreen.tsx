@@ -9,20 +9,14 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { NavigationProps, ParkingLot } from '../types';
+import { ParkingLot } from '../types';
+import { StackScreenProps } from '@react-navigation/stack';
+import { RootStackParamList } from '../navigation/AppNavigator';
 import { formatCurrency, formatPercentage } from '../utils/pdfGenerator';
 import { createPendingInvestment } from '../services/firebase';
 import { auth } from '../services/firebase';
 
-interface OfflinePaymentScreenProps extends NavigationProps {
-  route: {
-    params: {
-      parkingLot: ParkingLot;
-      investmentAmount: number;
-      selectedLots: number;
-    };
-  };
-}
+type OfflinePaymentScreenProps = StackScreenProps<RootStackParamList, 'OfflinePayment'>;
 
 const OfflinePaymentScreen: React.FC<OfflinePaymentScreenProps> = ({ navigation, route }) => {
   const { parkingLot, investmentAmount, selectedLots } = route.params;

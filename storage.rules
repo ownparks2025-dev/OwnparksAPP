@@ -14,6 +14,16 @@ service firebase.storage {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'super_admin'];
     }
     
+    // KYC documents with underscore path - users can upload their own, admins can read all
+    match /kyc_documents/{userId}/{allPaths=**} {
+      allow read, write: if request.auth != null && 
+        (request.auth.uid == userId || 
+         userId.matches('temp_.*'));
+      allow read: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'super_admin'];
+    }
+    
     // Parking lot images - authenticated users can read, admins can write
     match /parking-lots/{allPaths=**} {
       allow read: if request.auth != null;

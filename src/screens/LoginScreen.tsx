@@ -33,6 +33,10 @@ const LoginScreen: React.FC<NavigationProps> = ({ navigation }) => {
     setLoading(true);
     try {
       const userCredential = await loginUser(formData.email, formData.password);
+      if (!userCredential) {
+        Alert.alert('Error', 'Login failed. Please try again.');
+        return;
+      }
       const userProfile = await getUserProfile(userCredential.uid);
       
       if (userProfile) {

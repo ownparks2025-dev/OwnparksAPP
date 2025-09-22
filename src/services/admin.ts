@@ -775,6 +775,7 @@ export const getSystemStats = async () => {
       totalInvestments: investmentsSnapshot.size,
       successfulInvestments,
       totalInvestmentValue,
+      totalPayouts: 0, // TODO: Implement payout tracking
       averageROI
     };
   } catch (error: any) {

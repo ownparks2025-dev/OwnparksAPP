@@ -15,6 +15,7 @@ import AdminScreen from '../screens/AdminScreen';
 import SupportScreen from '../screens/SupportScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import OfflinePaymentScreen from '../screens/OfflinePaymentScreen';
+import { ParkingLot } from '../types';
 
 export type RootStackParamList = {
   Landing: undefined;
@@ -23,8 +24,8 @@ export type RootStackParamList = {
   MainApp: undefined;
   Browse: undefined;
   LotDetails: { lotId: string };
-  InvestmentFlow: { parkingLot: any; investmentAmount: number };
-  OfflinePayment: { parkingLot: any; investmentAmount: number; selectedLots: number };
+  InvestmentFlow: { parkingLot: ParkingLot; investmentAmount: number; selectedLots: number };
+  OfflinePayment: { parkingLot: ParkingLot; investmentAmount: number; selectedLots: number };
   Portfolio: undefined;
   Profile: undefined;
   Notifications: undefined;

@@ -18,7 +18,31 @@ service cloud.firestore {
       // Allow users to read their own KYC documents subcollection
       match /documents/{docId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
+        
+        // Allow admins to read all KYC documents in subcollection
+        allow read: if request.auth != null && 
+          exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'super_admin'];
       }
+    }
+    
+    // KYC Documents collection - allow users to manage their own documents
+    match /kyc_documents/{userId}/{docId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow admins to read all KYC documents
+      allow read: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'super_admin'];
+    }
+    
+    // Temporary KYC documents for users during registration
+    match /kyc_documents/{tempUserId}/{docId} {
+      allow read, write: if request.auth != null && 
+        (request.auth.uid == tempUserId || 
+         tempUserId.matches('temp_.*') ||
+         exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'super_admin']);
     }
     
     // Investments: Users can read their own investments, admins can read all

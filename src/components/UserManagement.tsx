@@ -22,7 +22,8 @@ import {
   canRemoveAdmin,
   countAdminUsers
 } from '../services/admin';
-import { auth, getKYCDocumentsForUser } from '../services/firebase';
+import { auth } from '../services/firebase';
+import { getUserKYCDocuments } from '../services/cloudinaryStorage';
 import { User } from '../types';
 import KYCDocumentViewer from './KYCDocumentViewer';
 
@@ -112,17 +113,33 @@ const UserManagement: React.FC = () => {
     try {
       setLoadingDocuments(true);
       
-      // Get user-specific documents from Firestore
-      console.log(`Loading KYC documents from Firestore for user: ${userId}`);
-      const userDocuments = await getKYCDocumentsForUser(userId);
-      console.log(`Loaded ${userDocuments.length} documents for user ${userId}`);
-      setLocalKycDocuments(userDocuments);
+      // Note: Since we're using local storage, admin panel can only view documents
+      // for the currently logged-in user. For a full admin solution, consider
+      // implementing a centralized document storage system.
+      console.log(`Loading KYC documents from local storage for user: ${userId}`);
+      
+      // Check if this is the current user
+      const currentUser = auth.currentUser;
+      if (currentUser && currentUser.uid === userId) {
+        const userDocuments = await getUserKYCDocuments(userId);
+        console.log(`Loaded ${userDocuments.length} documents for user ${userId}`);
+        setLocalKycDocuments(userDocuments);
+      } else {
+        // For other users, we can't access their local storage
+        console.log('Cannot access local storage for other users');
+        setLocalKycDocuments([]);
+        Alert.alert(
+          'Documents Not Available', 
+          'KYC documents are stored locally and can only be viewed by the document owner. This user needs to log in to view their documents.',
+          [{ text: 'OK' }]
+        );
+      }
     } catch (error) {
       console.error('Error loading KYC documents:', error);
       setLocalKycDocuments([]);
       Alert.alert(
         'Error Loading Documents', 
-        'Failed to load KYC documents from database. Please try again.',
+        'Failed to load KYC documents from local storage. Please try again.',
         [{ text: 'OK' }]
       );
     } finally {
