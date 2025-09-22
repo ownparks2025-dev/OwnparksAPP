@@ -12,7 +12,7 @@ import { NavigationProps } from '../types';
 
 const SupportScreen: React.FC<NavigationProps> = ({ navigation }) => {
   const supportEmail = 'support@ownparks.com';
-  const supportPhone = '+1-XXX-XXX-XXXX'; // Replace with your actual mobile number
+  const supportPhone = '+91-9829495886'; // Support phone number
 
   const handleEmailPress = () => {
     const emailUrl = `mailto:${supportEmail}`;

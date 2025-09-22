@@ -237,7 +237,14 @@ const SystemSettings: React.FC<SystemSettingsProps> = () => {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView 
+      style={styles.container}
+      showsVerticalScrollIndicator={false}
+      decelerationRate="fast"
+      bounces={true}
+      bouncesZoom={false}
+      scrollEventThrottle={16}
+    >
       {/* System Information */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>System Information</Text>

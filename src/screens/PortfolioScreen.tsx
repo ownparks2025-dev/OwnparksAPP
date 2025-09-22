@@ -13,7 +13,8 @@ import {
 import { NavigationProps, Investment, ParkingLot } from '../types';
 import { getUserInvestments, getParkingLotById, auth, getUserProfile } from '../services/firebase';
 import { validateEmail } from '../utils/validation';
-import { generateLeaseAgreementPDF, formatCurrency, formatPercentage } from '../utils/pdfGenerator';
+import { generateLeaseAgreementPDF, formatCurrency } from '../utils/pdfGenerator';
+import { formatPercentage } from '../utils/validation';
 
 const { width } = Dimensions.get('window');
 

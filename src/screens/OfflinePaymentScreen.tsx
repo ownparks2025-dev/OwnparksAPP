@@ -62,7 +62,7 @@ const OfflinePaymentScreen: React.FC<OfflinePaymentScreenProps> = ({ navigation,
       [
         {
           text: 'Call',
-          onPress: () => Linking.openURL('tel:+911234567890'),
+          onPress: () => Linking.openURL('tel:+919829495886'),
         },
         {
           text: 'Email',
@@ -70,7 +70,7 @@ const OfflinePaymentScreen: React.FC<OfflinePaymentScreenProps> = ({ navigation,
         },
         {
           text: 'WhatsApp',
-          onPress: () => Linking.openURL('https://wa.me/911234567890?text=Hi, I want to make payment for my investment in ' + parkingLot.name),
+          onPress: () => Linking.openURL('https://wa.me/919829495886?text=Hi, I want to make payment for my investment in ' + parkingLot.name),
         },
         {
           text: 'Cancel',
@@ -179,7 +179,7 @@ const OfflinePaymentScreen: React.FC<OfflinePaymentScreenProps> = ({ navigation,
             <Text style={styles.contactIcon}>📞</Text>
             <View style={styles.contactDetails}>
               <Text style={styles.contactLabel}>Phone</Text>
-              <Text style={styles.contactValue}>+91 12345 67890</Text>
+              <Text style={styles.contactValue}>+91 98294 95886</Text>
             </View>
           </View>
           
@@ -195,7 +195,7 @@ const OfflinePaymentScreen: React.FC<OfflinePaymentScreenProps> = ({ navigation,
             <Text style={styles.contactIcon}>💬</Text>
             <View style={styles.contactDetails}>
               <Text style={styles.contactLabel}>WhatsApp</Text>
-              <Text style={styles.contactValue}>+91 12345 67890</Text>
+              <Text style={styles.contactValue}>+91 98294 95886</Text>
             </View>
           </View>
           

@@ -29,7 +29,7 @@ import { getAllParkingLots } from '../services/admin';
 import { notificationService } from '../services/notifications';
 import { db, auth } from '../services/firebase';
 
-type FilterType = 'all' | 'pending' | 'success' | 'failed' | 'admin_pending';
+type FilterType = 'all' | 'pending' | 'success' | 'failed';
 
 const InvestmentManagement: React.FC = () => {
   const [investments, setInvestments] = useState<Investment[]>([]);
@@ -49,11 +49,10 @@ const InvestmentManagement: React.FC = () => {
   const [batchActionLoading, setBatchActionLoading] = useState(false);
 
   const investmentFilters = [
-    { id: 'all', label: 'All', count: investments.length },
-    { id: 'pending', label: 'Pending', count: investments.filter(i => i.paymentStatus === 'pending').length },
-    { id: 'success', label: 'Success', count: investments.filter(i => i.paymentStatus === 'success').length },
-    { id: 'failed', label: 'Failed', count: investments.filter(i => i.paymentStatus === 'failed').length },
-    { id: 'admin_pending', label: 'Admin Review', count: investments.filter(i => i.adminApprovalStatus === 'pending').length },
+    { id: 'all', label: 'All Investments', count: investments.length },
+    { id: 'pending', label: 'Pending', count: investments.filter(i => i.paymentStatus === 'pending' || (i.paymentStatus === 'success' && i.adminApprovalStatus === 'pending')).length },
+    { id: 'success', label: 'Success', count: investments.filter(i => i.paymentStatus === 'success' && i.adminApprovalStatus === 'approved').length },
+    { id: 'failed', label: 'Failed', count: investments.filter(i => i.paymentStatus === 'failed' || i.adminApprovalStatus === 'rejected').length },
   ];
 
   const currentFilters = investmentFilters;
@@ -101,19 +100,25 @@ const InvestmentManagement: React.FC = () => {
     });
 
     // Apply status filter
-    if (filter !== 'all') {
-      if (filter === 'admin_pending') {
-        filtered = filtered.filter(investment => investment.adminApprovalStatus === 'pending');
-      } else {
-        filtered = filtered.filter(investment => {
-          // For success filter, include both pending admin approval and approved investments
-          if (filter === 'success') {
-            return investment.paymentStatus === 'success';
-          }
-          // For other filters, exclude admin pending
-          return investment.paymentStatus === filter && investment.adminApprovalStatus !== 'pending';
-        });
-      }
+    if (filter === 'all') {
+      // 'All Investments' shows all investments
+      // No additional filtering needed
+    } else if (filter === 'pending') {
+      // 'Pending' shows investments awaiting user payment or admin approval (but not failed payments)
+      filtered = filtered.filter(investment => 
+        investment.paymentStatus === 'pending' || 
+        (investment.paymentStatus === 'success' && investment.adminApprovalStatus === 'pending')
+      );
+    } else if (filter === 'success') {
+      // 'Success' shows successful investments (payment success and admin approved)
+      filtered = filtered.filter(investment => 
+        investment.paymentStatus === 'success' && investment.adminApprovalStatus === 'approved'
+      );
+    } else if (filter === 'failed') {
+      // 'Failed' shows rejected investments (payment failed or admin rejected)
+      filtered = filtered.filter(investment => 
+        investment.paymentStatus === 'failed' || investment.adminApprovalStatus === 'rejected'
+      );
     }
 
     // Apply search filter
@@ -144,62 +149,7 @@ const InvestmentManagement: React.FC = () => {
     await loadData();
   };
 
-  const createTestInvestments = async () => {
-    try {
-      if (users.length === 0 || parkingLots.length === 0) {
-        Alert.alert('Error', 'No users or parking lots available to create test investments');
-        return;
-      }
 
-      setActionLoading('creating-test-investments');
-      
-      // Create 3 test investments with different statuses
-      const testInvestments = [
-        {
-          userId: users[0].uid,
-          parkingLotId: parkingLots[0].id,
-          leaseAccepted: true,
-          paymentStatus: 'success' as const,
-          adminApprovalStatus: 'approved' as const,
-          amount: 50000,
-          selectedLots: 1,
-          paymentMethod: 'online'
-        },
-        {
-          userId: users[0].uid,
-          parkingLotId: parkingLots[0].id,
-          leaseAccepted: true,
-          paymentStatus: 'pending' as const,
-          adminApprovalStatus: 'pending' as const,
-          amount: 75000,
-          selectedLots: 2,
-          paymentMethod: 'offline'
-        },
-        {
-          userId: users.length > 1 ? users[1].uid : users[0].uid,
-          parkingLotId: parkingLots.length > 1 ? parkingLots[1].id : parkingLots[0].id,
-          leaseAccepted: false,
-          paymentStatus: 'success' as const,
-          adminApprovalStatus: 'pending' as const,
-          amount: 100000,
-          selectedLots: 3,
-          paymentMethod: 'online'
-        }
-      ];
-
-      for (const investment of testInvestments) {
-        await createInvestment(investment);
-      }
-
-      Alert.alert('Success', 'Test investments created successfully');
-      await loadData(); // Reload data to show new investments
-    } catch (error) {
-      console.error('Error creating test investments:', error);
-      Alert.alert('Error', 'Failed to create test investments');
-    } finally {
-      setActionLoading(null);
-    }
-  };
 
   const handleInvestmentStatusUpdate = async (investmentId: string, status: 'success' | 'failed') => {
     try {
@@ -305,6 +255,24 @@ const InvestmentManagement: React.FC = () => {
         throw new Error('Investment not found');
       }
       
+      // First confirm payment status if it's still pending
+      if (investment.paymentStatus === 'pending') {
+        await updateInvestmentStatus(investmentId, { 
+          paymentStatus: 'success',
+          paymentConfirmedAt: new Date()
+        });
+        
+        // Update local state to reflect payment confirmation
+        setInvestments(prevInvestments =>
+          prevInvestments.map(inv =>
+            inv.investmentId === investmentId 
+              ? { ...inv, paymentStatus: 'success', paymentConfirmedAt: new Date() }
+              : inv
+          )
+        );
+      }
+      
+      // Now approve the investment
       await approveInvestmentAfterPayment(investmentId, 'Approved after payment confirmation');
       
       // Send approval notification
@@ -313,7 +281,7 @@ const InvestmentManagement: React.FC = () => {
         getLotName(investment.parkingLotId)
       );
       
-      Alert.alert('Success', 'Payment confirmed and investment approved in one step!');
+      Alert.alert('Admin Action Complete', 'Payment confirmed and investment approved - user has been notified');
       
       // Refresh data to show updated status
       await loadData();
@@ -398,7 +366,24 @@ const InvestmentManagement: React.FC = () => {
       }
       
       if (action === 'approve') {
-        // First confirm payment, then approve
+        // First confirm payment status if it's still pending
+        if (investment.paymentStatus === 'pending') {
+          await updateInvestmentStatus(investmentId, { 
+            paymentStatus: 'success',
+            paymentConfirmedAt: new Date()
+          });
+          
+          // Update local state to reflect payment confirmation
+          setInvestments(prevInvestments =>
+            prevInvestments.map(inv =>
+              inv.investmentId === investmentId 
+                ? { ...inv, paymentStatus: 'success', paymentConfirmedAt: new Date() }
+                : inv
+            )
+          );
+        }
+        
+        // Now approve the investment
         await approveInvestmentAfterPayment(investmentId, 'Payment confirmed and approved');
         
         // Send approval notification
@@ -407,7 +392,7 @@ const InvestmentManagement: React.FC = () => {
           getLotName(investment.parkingLotId)
         );
         
-        Alert.alert('Success', 'Payment confirmed and investment approved!');
+        Alert.alert('Admin Action Complete', 'Payment confirmed and investment approved - user has been notified');
       } else {
         // Reject payment
         await handleInvestmentStatusUpdate(investmentId, 'failed');
@@ -444,7 +429,7 @@ const InvestmentManagement: React.FC = () => {
           getLotName(investment.parkingLotId)
         );
         
-        Alert.alert('Success', 'Investment approved and added to user portfolio');
+        Alert.alert('Admin Action Complete', 'Investment approved - user has been notified');
       } else {
         await rejectInvestment(investmentId, 'Payment verification failed');
         
@@ -574,17 +559,6 @@ const InvestmentManagement: React.FC = () => {
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
-        <TouchableOpacity
-          style={styles.debugButton}
-          onPress={createTestInvestments}
-          disabled={actionLoading === 'creating-test-investments'}
-        >
-          {actionLoading === 'creating-test-investments' ? (
-            <ActivityIndicator size="small" color="white" />
-          ) : (
-            <Text style={styles.debugButtonText}>Create Test Data</Text>
-          )}
-        </TouchableOpacity>
       </View>
 
       {/* Filter Tabs */}
@@ -593,6 +567,10 @@ const InvestmentManagement: React.FC = () => {
         showsHorizontalScrollIndicator={false}
         style={styles.filterContainer}
         contentContainerStyle={styles.filterScrollContainer}
+        decelerationRate="fast"
+        bounces={true}
+        bouncesZoom={false}
+        scrollEventThrottle={16}
       >
         {currentFilters.map((filter) => (
           <TouchableOpacity
@@ -669,6 +647,11 @@ const InvestmentManagement: React.FC = () => {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
+        showsVerticalScrollIndicator={false}
+        decelerationRate="fast"
+        bounces={true}
+        bouncesZoom={false}
+        scrollEventThrottle={16}
       >
         {/* Investments List */}
         {(filteredData as Investment[]).map((investment) => (
@@ -896,19 +879,7 @@ const styles = StyleSheet.create({
     borderColor: '#e1e5e9',
     flex: 1,
   },
-  debugButton: {
-    backgroundColor: '#FF9500',
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    borderRadius: 8,
-    minWidth: 100,
-    alignItems: 'center',
-  },
-  debugButtonText: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: '600',
-  },
+
   filterContainer: {
     backgroundColor: 'white',
     borderBottomWidth: 1,

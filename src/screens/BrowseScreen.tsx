@@ -84,50 +84,54 @@ const BrowseScreen: React.FC<NavigationProps> = ({ navigation }) => {
       onPress={() => handleLotPress(item)}
       activeOpacity={0.7}
     >
-      <View style={styles.lotImageContainer}>
-        <View style={styles.lotImagePlaceholder}>
-          <Text style={styles.lotImageText}>🏢</Text>
-        </View>
-      </View>
-      
-      <View style={styles.lotInfo}>
-        <Text style={styles.lotName} numberOfLines={1}>
-          {item.name}
-        </Text>
-        <Text style={styles.lotLocation} numberOfLines={1}>
-          📍 {item.location}
-        </Text>
-        
-        <View style={styles.lotStats}>
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Price</Text>
-            <Text style={styles.statValue}>{formatCurrency(item.price)}</Text>
+      <View style={styles.lotCardTop}>
+        <View style={styles.lotImageContainer}>
+          <View style={styles.lotImagePlaceholder}>
+            <Text style={styles.lotImageText}>🏢</Text>
           </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>ROI</Text>
-            <Text style={[styles.statValue, styles.roiValue]}>
-              {formatPercentage(item.roi)}
+        </View>
+        
+        <View style={styles.lotInfo}>
+          <Text style={styles.lotName} numberOfLines={1}>
+            {item.name}
+          </Text>
+          <Text style={styles.lotLocation} numberOfLines={1}>
+            📍 {item.location}
+          </Text>
+          
+          <View style={styles.lotStats}>
+            <View style={styles.statItem}>
+              <Text style={styles.statLabel}>Price</Text>
+              <Text style={styles.statValue}>{formatCurrency(item.price)}</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statLabel}>ROI</Text>
+              <Text style={[styles.statValue, styles.roiValue]}>
+                {formatPercentage(item.roi)}
+              </Text>
+            </View>
+          </View>
+          
+          <View style={styles.availabilityContainer}>
+            <View style={[styles.availabilityDot, { backgroundColor: item.availability ? '#34C759' : '#FF3B30' }]} />
+            <Text style={styles.availabilityText}>
+              {item.availability ? 'Available' : 'Fully Invested'}
             </Text>
           </View>
         </View>
-        
-        <View style={styles.availabilityContainer}>
-          <View style={[styles.availabilityDot, { backgroundColor: item.availability ? '#34C759' : '#FF3B30' }]} />
-          <Text style={styles.availabilityText}>
-            {item.availability ? 'Available' : 'Fully Invested'}
-          </Text>
-        </View>
       </View>
       
-      <TouchableOpacity
-        style={[styles.investButton, !item.availability && styles.disabledButton]}
-        onPress={() => handleLotPress(item)}
-        disabled={!item.availability}
-      >
-        <Text style={styles.investButtonText}>
-          {item.availability ? 'Invest Now' : 'Full'}
-        </Text>
-      </TouchableOpacity>
+      <View style={styles.lotCardBottom}>
+        <TouchableOpacity
+          style={[styles.investButton, !item.availability && styles.disabledButton]}
+          onPress={() => handleLotPress(item)}
+          disabled={!item.availability}
+        >
+          <Text style={styles.investButtonText}>
+            {item.availability ? 'Invest Now' : 'Full'}
+          </Text>
+        </TouchableOpacity>
+      </View>
     </TouchableOpacity>
   );
 
@@ -331,7 +335,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginBottom: 16,
     padding: 16,
-    flexDirection: 'row',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -340,6 +343,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3.84,
     elevation: 5,
+  },
+  lotCardTop: {
+    flexDirection: 'row',
+    marginBottom: 12,
+  },
+  lotCardBottom: {
+    alignItems: 'flex-end',
   },
   lotImageContainer: {
     marginRight: 16,
@@ -406,19 +416,19 @@ const styles = StyleSheet.create({
   },
   investButton: {
     backgroundColor: '#007AFF',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    minWidth: 60,
+    minWidth: 90,
   },
   disabledButton: {
     backgroundColor: '#ccc',
   },
   investButtonText: {
     color: 'white',
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
   },
   loadingContainer: {

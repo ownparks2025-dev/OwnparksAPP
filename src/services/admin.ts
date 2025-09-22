@@ -574,6 +574,25 @@ export const batchApproveInvestments = async (
   
   for (const investmentId of investmentIds) {
     try {
+      // First check and confirm payment if needed
+      const investmentRef = db.collection('investments').doc(investmentId);
+      const investmentDoc = await investmentRef.get();
+      
+      if (!investmentDoc.exists) {
+        throw new Error('Investment not found');
+      }
+      
+      const investmentData = investmentDoc.data() as Investment;
+      
+      // If payment is still pending, confirm it first
+      if (investmentData.paymentStatus === 'pending') {
+        await updateInvestmentStatus(investmentId, { 
+          paymentStatus: 'success',
+          paymentConfirmedAt: new Date()
+        });
+      }
+      
+      // Now approve the investment
       await approveInvestmentAfterPayment(investmentId, adminNotes);
       successful.push(investmentId);
     } catch (error: any) {

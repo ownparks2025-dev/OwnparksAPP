@@ -90,6 +90,11 @@ const AdminDashboard: React.FC = () => {
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
+      showsVerticalScrollIndicator={false}
+      decelerationRate="fast"
+      bounces={true}
+      bouncesZoom={false}
+      scrollEventThrottle={16}
     >
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Analytics Dashboard</Text>

@@ -246,8 +246,8 @@ class NotificationService {
     const notification: Notification = {
       id: `inv_approved_${Date.now()}`,
       type: 'investment_approved',
-      title: 'Investment Approved! 🎉',
-      message: `Great news! Your investment of ₹${(investment.amount || 0).toLocaleString()} in ${parkingLotName} has been approved by our admin team. You can now view it in your portfolio.`,
+      title: '🎉 Investment Approved Successfully!',
+      message: `Congratulations! Your investment of ₹${(investment.amount || 0).toLocaleString()} in ${parkingLotName} has been approved and is now active in your portfolio. You'll start earning returns soon!`,
       priority: 'high',
       data: { investmentId: investment.investmentId, parkingLotName, amount: investment.amount },
       timestamp: new Date(),
@@ -256,6 +256,13 @@ class NotificationService {
     };
 
     this.addNotification(notification);
+    
+    // Also show an immediate alert to the user if they're currently in the app
+    Alert.alert(
+      '🎉 Investment Approved!',
+      `Great news! Your ₹${(investment.amount || 0).toLocaleString()} investment in ${parkingLotName} has been approved. Check your portfolio to see your new investment!`,
+      [{ text: 'View Portfolio', onPress: () => {} }, { text: 'OK' }]
+    );
   }
 
   // Create investment rejection notification

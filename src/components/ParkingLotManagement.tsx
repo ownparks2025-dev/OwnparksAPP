@@ -19,6 +19,7 @@ import {
   deleteParkingLot 
 } from '../services/admin';
 import { ParkingLot } from '../types';
+import LocalImageUpload from './LocalImageUpload';
 
 interface ParkingLotFormData {
   name: string;
@@ -311,6 +312,11 @@ const ParkingLotManagement: React.FC = () => {
       {/* Parking Lots List */}
       <ScrollView
         style={styles.lotsList}
+        showsVerticalScrollIndicator={false}
+        decelerationRate="fast"
+        bounces={true}
+        bouncesZoom={false}
+        scrollEventThrottle={16}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
@@ -429,7 +435,14 @@ const ParkingLotManagement: React.FC = () => {
             </TouchableOpacity>
           </View>
           
-          <ScrollView style={styles.modalContent}>
+          <ScrollView 
+            style={styles.modalContent}
+            showsVerticalScrollIndicator={false}
+            decelerationRate="fast"
+            bounces={true}
+            bouncesZoom={false}
+            scrollEventThrottle={16}
+          >
             <View style={styles.formGroup}>
               <Text style={styles.formLabel}>Name *</Text>
               <TextInput
@@ -496,6 +509,13 @@ const ParkingLotManagement: React.FC = () => {
                 numberOfLines={4}
               />
             </View>
+
+            <LocalImageUpload
+              images={formData.images}
+              onImagesChange={(images) => setFormData(prev => ({ ...prev, images }))}
+              maxImages={5}
+              label="Parking Lot Images"
+            />
 
             <View style={styles.formGroup}>
               <View style={styles.switchRow}>

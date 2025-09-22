@@ -501,6 +501,11 @@ const UserManagement: React.FC = () => {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
+        showsVerticalScrollIndicator={false}
+        decelerationRate="fast"
+        bounces={true}
+        bouncesZoom={false}
+        scrollEventThrottle={16}
       >
         {filteredUsers.map((user) => (
           <View key={user.uid} style={styles.userCard}>
@@ -686,7 +691,14 @@ const UserManagement: React.FC = () => {
           </View>
           
           {selectedUser && (
-            <ScrollView style={styles.modalContent}>
+            <ScrollView 
+              style={styles.modalContent}
+              showsVerticalScrollIndicator={false}
+              decelerationRate="fast"
+              bounces={true}
+              bouncesZoom={false}
+              scrollEventThrottle={16}
+            >
               <View style={styles.modalSection}>
                 <Text style={styles.modalSectionTitle}>Personal Information</Text>
                 <View style={styles.modalField}>
