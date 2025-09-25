@@ -312,11 +312,13 @@ const ParkingLotManagement: React.FC = () => {
       {/* Parking Lots List */}
       <ScrollView
         style={styles.lotsList}
-        showsVerticalScrollIndicator={false}
-        decelerationRate="fast"
+        showsVerticalScrollIndicator={true}
+        decelerationRate="normal"
         bounces={true}
-        bouncesZoom={false}
+        alwaysBounceVertical={true}
         scrollEventThrottle={16}
+        contentInsetAdjustmentBehavior="automatic"
+        keyboardShouldPersistTaps="handled"
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }

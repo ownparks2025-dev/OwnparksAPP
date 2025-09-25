@@ -647,11 +647,13 @@ const InvestmentManagement: React.FC = () => {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-        showsVerticalScrollIndicator={false}
-        decelerationRate="fast"
+        showsVerticalScrollIndicator={true}
+        decelerationRate="normal"
         bounces={true}
-        bouncesZoom={false}
+        alwaysBounceVertical={true}
         scrollEventThrottle={16}
+        contentInsetAdjustmentBehavior="automatic"
+        keyboardShouldPersistTaps="handled"
       >
         {/* Investments List */}
         {(filteredData as Investment[]).map((investment) => (

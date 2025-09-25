@@ -425,9 +425,13 @@ const UserManagement: React.FC = () => {
       {/* Filter Tabs */}
       <ScrollView 
         horizontal 
-        showsHorizontalScrollIndicator={false}
+        showsHorizontalScrollIndicator={true}
         style={styles.filterContainer}
         contentContainerStyle={styles.filterScrollContainer}
+        decelerationRate="normal"
+        bounces={true}
+        scrollEventThrottle={16}
+        directionalLockEnabled={true}
       >
         {filters.map((filter) => (
           <TouchableOpacity
@@ -501,11 +505,13 @@ const UserManagement: React.FC = () => {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-        showsVerticalScrollIndicator={false}
-        decelerationRate="fast"
+        showsVerticalScrollIndicator={true}
+        decelerationRate="normal"
         bounces={true}
-        bouncesZoom={false}
+        alwaysBounceVertical={true}
         scrollEventThrottle={16}
+        contentInsetAdjustmentBehavior="automatic"
+        keyboardShouldPersistTaps="handled"
       >
         {filteredUsers.map((user) => (
           <View key={user.uid} style={styles.userCard}>
