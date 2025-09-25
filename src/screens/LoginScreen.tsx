@@ -10,7 +10,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { NavigationProps, LoginFormData } from '../types';
-import { loginUser, getUserProfile } from '../services/firebase';
+import { loginUser, getUserProfile, sendPasswordResetEmail } from '../services/firebase';
+import { validateEmail } from '../utils/validation';
 import SimpleLogo from '../components/SimpleLogo';
 
 const LoginScreen: React.FC<NavigationProps> = ({ navigation }) => {
@@ -65,8 +66,59 @@ const LoginScreen: React.FC<NavigationProps> = ({ navigation }) => {
   };
 
   const handleForgotPassword = () => {
-    // Navigate to forgot password screen
-    Alert.alert('Info', 'Password reset functionality will be implemented soon.');
+    if (!formData.email.trim()) {
+      Alert.alert(
+        'Email Required',
+        'Please enter your email address first, then tap "Forgot Password?"',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
+    if (!validateEmail(formData.email)) {
+      Alert.alert(
+        'Invalid Email',
+        'Please enter a valid email address.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
+    Alert.alert(
+      'Reset Password',
+      `Send password reset instructions to ${formData.email}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Send',
+          onPress: async () => {
+            try {
+              setLoading(true);
+              await sendPasswordResetEmail(formData.email);
+              Alert.alert(
+                'Email Sent',
+                `Password reset instructions have been sent to ${formData.email}. Please check your email and follow the instructions to reset your password.`,
+                [{ text: 'OK' }]
+              );
+            } catch (error: any) {
+              let errorMessage = 'Failed to send password reset email.';
+              
+              if (error.message.includes('user-not-found')) {
+                errorMessage = 'No account found with this email address.';
+              } else if (error.message.includes('invalid-email')) {
+                errorMessage = 'Please enter a valid email address.';
+              } else if (error.message.includes('too-many-requests')) {
+                errorMessage = 'Too many requests. Please try again later.';
+              }
+              
+              Alert.alert('Error', errorMessage, [{ text: 'OK' }]);
+            } finally {
+              setLoading(false);
+            }
+          }
+        }
+      ]
+    );
   };
 
   return (

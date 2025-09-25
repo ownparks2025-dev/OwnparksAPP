@@ -128,6 +128,14 @@ export const logoutUser = async () => {
   }
 };
 
+export const sendPasswordResetEmail = async (email: string) => {
+  try {
+    await auth.sendPasswordResetEmail(email);
+  } catch (error: any) {
+    throw new Error(error.message);
+  }
+};
+
 
 
 // User management functions
